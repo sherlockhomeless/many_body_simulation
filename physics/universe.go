@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 )
+import "sync"
 
 var Debug bool
 var Worker int
@@ -28,6 +29,8 @@ type Universe struct {
 	G float64
 	hasFinished  bool
 	mergedStarsChan chan int
+	wg sync.WaitGroup
+
 
 }
 
@@ -53,6 +56,7 @@ func (u *Universe) RunSimulation(){
 
 	// build communication-channel for all workers
 	var chanArr []chan Star = make([]chan Star, Worker)
+
 	for i := 0; i < Worker; i++{
 		chanArr[i] = make(chan Star, u.StarCount)
 	}
@@ -66,16 +70,19 @@ func (u *Universe) RunSimulation(){
 			}
 		}
 
+		u.wg.Add(Worker)
 		// run simulation for workers
 		for i := 0; i < Worker; i++ {
 			go u.runSimulationRound(i, chanArr[i])
 		}
+		u.wg.Wait()
 
 		//TODO: just continous executing ==> some kind of sync must be here
 		// read results from workers
 		for i := 0; i < len(u.Stars); i++{
 			u.Stars[i] = <- chanArr[i%Worker]
 		}
+
 
 		for merged_index := range u.mergedStarsChan{
 			u.Stars = append(u.Stars[:merged_index], u.Stars[merged_index+1:]...)
@@ -92,13 +99,17 @@ func (u *Universe) RunSimulation(){
 
 
 func (u *Universe) runSimulationRound(worker int, starChan chan Star) {
-
+	var curStar Star
 	for x := 0; x < len(u.Stars); x += Worker{
-			starChan <- u.calculateMovement(x)
+
+		curStar = u.calculateNewPosition(x)
+		printer.PrintMovement(fmt.Sprintf("Moving %d to (%d,%d)", curStar.ID, curStar.X, curStar.Y))
+		starChan <- curStar
 	}
+	u.wg.Done()
 }
 
-func (u *Universe) calculateMovement(indexForStar int) Star{
+func (u *Universe) calculateNewPosition(indexForStar int) Star{
 	var distanceBtwStars float64
 	var gravitationalForce float64
 	var directions [2]float64
@@ -115,15 +126,15 @@ func (u *Universe) calculateMovement(indexForStar int) Star{
 		m2 = u.Stars[i].Mass
 		distanceBtwStars = math.Sqrt((x1-x2)*(x1*x2)+(y1*y2)*(y1*y2))
 
-		if distanceBtwStars > u.MinimalDistance && indexForStar > i {
+		if distanceBtwStars < u.MinimalDistance && indexForStar > i {
 			u.mergeStars(&u.Stars[indexForStar], &u.Stars[i])
 		}
 
 		gravitationalForce = (u.G * float64(m1 * m2)/(distanceBtwStars*distanceBtwStars))
 		directions[0] = x2-x1
 		directions[1] = y2-y1
-		x1 = directions[0] * gravitationalForce
-		y1 = directions[1] * gravitationalForce
+		x1 += directions[0] * gravitationalForce
+		y1 += directions[1] * gravitationalForce
 
 	}
 	return Star{ID:indexForStar, Mass:u.Stars[indexForStar].Mass, X:x1, Y:y1}
