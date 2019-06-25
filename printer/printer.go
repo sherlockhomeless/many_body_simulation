@@ -9,3 +9,7 @@ func PrintMeta(msg string){
 func PrintMovement(msg string){
 	color.Yellow(msg)
 }
+
+func PrintMerge(msg string){
+	color.Red(msg)
+}

@@ -4,14 +4,15 @@ import "github.com/sherlockhomeless/many_body_simulation/physics"
 
 // TODO: Zeitmessung
 const (
-	 MaxMass uint32 = 1000;
-	 TimeConvergence int = 1000;
-	 X uint32 = 500;
-	 Y uint32 = 500;
-	 Bodys int = 100;
-	 MaxRounds int = 10000;
-	 G float64 = 0.00000067;
-	 worker_num int = 2;
+	 MaxMass         uint32  = 1000;
+	 TimeConvergence int     = 1000;
+	 X               uint32  = 500;
+	 Y               uint32  = 500;
+	 Bodys           int     = 100;
+	 MaxRounds       int     = 10000;
+	 G               float64 = 0.00000067;
+	 WorkerNum       int     = 2;
+	 MinimalDistance         = 10;
 )
 
 var universe physics.Universe
@@ -19,7 +20,7 @@ var universe physics.Universe
 
 func main() {
 	physics.Debug = true
-	physics.Worker = worker_num
+	physics.Worker = WorkerNum
 
 	universe := new(physics.Universe)
 
@@ -28,15 +29,10 @@ func main() {
 	universe.X_Dim = X
 	universe.Y_Dim = Y
 	universe.MaxMass = MaxMass
+	universe.MinimalDistance = MinimalDistance
+	universe.G = G
 
 	universe.FillUniverse()
-
-	for true{
-
-
-		if(universe.HasFinished) {
-			return
-		}
-	}
-
+	universe.RunSimulation()
+	return
 }
