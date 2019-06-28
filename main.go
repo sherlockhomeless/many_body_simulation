@@ -3,6 +3,9 @@ package main
 import "github.com/sherlockhomeless/many_body_simulation/physics"
 
 // TODO: Zeitmessung
+// Git-Commit-Msgs:
+// FIX: <BUG>
+// FEATURE: <Feature>
 const (
 	 MaxMass         uint32  = 1000;
 	 TimeConvergence int     = 1000;

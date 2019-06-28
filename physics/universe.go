@@ -74,6 +74,7 @@ func (u *Universe) RunSimulation(){
 		// run simulation for workers
 		for i := 0; i < Worker; i++ {
 			go u.runSimulationRound(i, chanArr[i])
+			printer.PrintGoRoutiens(fmt.Sprintf("Started R%d", i))
 		}
 		u.wg.Wait()
 
@@ -106,6 +107,7 @@ func (u *Universe) runSimulationRound(worker int, starChan chan Star) {
 		printer.PrintMovement(fmt.Sprintf("Moving %d to (%d,%d)", curStar.ID, curStar.X, curStar.Y))
 		starChan <- curStar
 	}
+	printer.PrintGoRoutiens(fmt.Sprintf("R%d finished", worker))
 	u.wg.Done()
 }
 
@@ -121,6 +123,11 @@ func (u *Universe) calculateNewPosition(indexForStar int) Star{
 	m1 = u.Stars[indexForStar].Mass
 
 	for i := 0; i < len(u.Stars); i++{
+		if(is_same_star(indexForStar, i)) {
+			continue
+		}
+
+
 		x2 = u.Stars[i].X
 		y2 = u.Stars[i].Y
 		m2 = u.Stars[i].Mass
@@ -147,4 +154,8 @@ func (u *Universe) mergeStars(bigStar *Star, smallStar *Star){
 	u.StarCount--
 	u.mergedStarsChan <- smallStar.ID
 	printer.PrintMerge(fmt.Sprintf("[MERGE] %d -> %d", smallStar.ID, bigStar.ID))
+}
+
+func is_same_star(star1 int, star2 int) bool{
+	return star1 == star2
 }

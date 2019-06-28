@@ -13,3 +13,7 @@ func PrintMovement(msg string){
 func PrintMerge(msg string){
 	color.Red(msg)
 }
+
+func PrintGoRoutiens(msg string){
+	color.Green(msg)
+}
